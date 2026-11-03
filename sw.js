@@ -1,4 +1,4 @@
-const CACHE = 'worldline-ai-v2-20261103';
+const CACHE = 'worldline-chatgpt-bridge-v4-20261104';
 const FILES = ['./','./index.html','./studio.js','./studio.css','./jszip.min.js','./manifest.webmanifest','./icon-192.png','./icon-512.png'];
 self.addEventListener('install', event => {
   event.waitUntil(caches.open(CACHE).then(cache => cache.addAll(FILES)));
