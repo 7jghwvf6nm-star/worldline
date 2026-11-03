@@ -1,0 +1,9 @@
+WORLDLINE AI 업데이트 설치
+
+1. 기존 GitHub worldline 저장소의 main 최상위에 이 폴더의 index.html, studio.js, studio.css, jszip.min.js, JSZIP_LICENSE.txt, sw.js, manifest.webmanifest, icon-192.png, icon-512.png를 업로드하고 Commit changes. ai-worker 폴더는 GitHub Pages 실행에 필요 없으며 공개 저장소에 올릴 필요가 없습니다.
+2. GitHub Pages 배포 완료 후 기존 주소를 새로고침. 화면의 'AI 세계관 스튜디오' 메뉴 확인.
+3. AI 연결 없이도 텍본(TXT/MD/HTML/EPUB/JSON) 불러오기, 세계관 직접 입력, 오프라인 도감 초안, ChatGPT 분석 요청문 복사 및 결과 JSON 가져오기를 사용할 수 있습니다.
+4. 자동 AI 분석/웹 검색/선택형 AI 스토리 생성을 원하면 Cloudflare Workers에 ai-worker/worker.js를 별도로 배포하고 Secrets에 OPENAI_API_KEY 및 APP_ACCESS_TOKEN을 설정하세요. ALLOWED_ORIGIN은 https://7jghwvf6nm-star.github.io 로 설정합니다. 웹앱의 AI 연결 화면에 Worker URL과 APP_ACCESS_TOKEN을 입력합니다. ChatGPT Plus 구독과 OpenAI API 결제는 별개입니다.
+5. 원본 작품 파일의 저작권을 확인하세요. 자료를 외부 API로 보내기 전에 권한과 개인정보를 확인하세요. 나무위키는 공개 접근이 제한될 수 있으며 조사 내용은 출처별로 확인하세요.
+
+주의: 실제 Cloudflare 배포, OpenAI API 호출, iPad Safari 실행은 이 환경에서 검증하지 못했습니다. API 키를 GitHub 코드 또는 브라우저에 입력하지 마세요.
