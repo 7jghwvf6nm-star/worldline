@@ -20,7 +20,7 @@ function persistStudio(){try{
 }catch(e){alert('저장 공간이 부족해. 세계관을 줄이거나 기존 항목을 삭제한 뒤 다시 시도해.')}}
 function activeWorld(){return S.worlds.find(w=>w.id===S.activeId)}
 function updateStatus(msg){S.status=msg;const el=document.getElementById('studioStatus');if(el)el.textContent=msg}
-function show(){if(state.screen==='studio')render()}
+function show(){if(state.screen==='studio')window.render()}
 function captureSetup(){for(const [id,k] of [['wsTitle','title'],['wsNotes','notes'],['wsLinks','links'],['wsPlayer','player'],['wsPremise','premise'],['wsEndpoint','endpoint']]){
   const v=document.getElementById(id);if(v)S[k]=v.value;
 }const m=document.getElementById('wsMedia');if(m)S.media=m.value}
@@ -59,7 +59,7 @@ function renderKnowledge(){return `<div class="ws-split ws-knowledge"><section c
 function renderPlay(){const run=S.run, w=activeWorld();if(!w)return `<section class="ws-card"><h2>먼저 세계관을 저장해 줘</h2><p>자료 준비 또는 도감 탭에서 세계를 만들고 ‘저장하고 이야기 시작’을 누르면 돼.</p><button class="btn btn-primary" data-studio="tab" data-tab="knowledge">세계관 도감으로</button></section>`;
   const scene=run?.current;return `<div class="ws-split ws-play"><section class="ws-card"><span class="ws-step">03 / ALTER THE STORY</span><h2>${esc(w.title)}</h2><p class="ws-muted">선택마다 사건·인물 관계가 달라지는 새로운 이야기. 원작 장면을 그대로 보여주는 기능은 아니야.</p>${!run||run.worldId!==w.id?`${formField('세계 속 내 이름','wsPlayer',S.player,'maxlength="40"')}${area('어디서부터 개입할까?','wsPremise',S.premise,4,'예: 1부 최종 사건 직전에 평범한 연구원으로 등장한다.')}${btn('start','세계에 들어가기 ↗','btn-primary')}`:
  `<div class="ws-play-card"><div class="ws-chapter">CHAPTER ${String(run.chapter||1).padStart(2,'0')} · ${esc(run.player)}</div>${scene?`<h3>${esc(scene.heading)}</h3><div class="ws-prose">${esc(scene.body).replace(/\n/g,'<br>')}</div>${scene.ending?'<p class="ws-small-note">이 장면은 결말처럼 마무리됐어. 계속하면 새로운 후일담을 만들 수 있어.</p>':''}<div class="ws-choices"><b>어떻게 행동할까?</b>${(scene.choices||[]).map((c,i)=>`<button class="ws-choice" data-studio="choose" data-index="${i}"><span class="ws-choice-index">${i+1}</span><span><strong>${esc(c.label)}</strong><small>${esc(c.impact)}</small></span></button>`).join('')}</div>${area('원하는 행동을 자유롭게 직접 입력','wsFreeChoice','',3,'예: 조력자에게 사실을 털어놓고 함께 탈출한다.')}${btn('freechoice','내 행동으로 진행 →')}`:`<div class="ws-loading"><b>${S.busy?'AI가 다음 장을 만드는 중…':'새로운 장을 만들 준비가 됐어.'}</b><p>${esc(S.progress||'이어서 진행을 누르면 다음 장면이 생성돼.')}</p></div>${btn('next','다음 장면 생성','btn-primary')}`}</div><div class="ws-actions">${btn('rewind','↶ 직전 선택 되돌리기')}${btn('restart','↻ 첫 장부터 다시')}${btn('export-story','↓ 이야기 TXT 저장')}</div>`}</section><aside class="ws-card ws-info"><span class="ws-step">STORY MEMORY</span><h3>지금까지 바꾼 세계선</h3>${run?.history?.length?`<ol class="ws-history">${run.history.map((h,i)=>`<li>제${i+1}장 · ${esc(h.choice)}</li>`).join('')}</ol>`:'<p class="ws-muted">첫 선택이 기록되기를 기다리고 있어.</p>'}<hr><h3>세계 설정 요약</h3><p class="ws-muted">${esc(w.bible.summary.slice(0,700)||'사용자가 직접 만든 세계관')}</p><hr><p class="ws-muted">${hasConfig()?'✧ AI 연결로 실시간 새 전개를 생성해.':'◌ 현재는 오프라인 템플릿 모드야. AI 연결을 설정하면 장면이 실시간 생성돼.'}</p></aside></div>`}
-function renderSettings(){return `<div class="ws-split"><section class="ws-card"><span class="ws-step">SECURE CONNECTION</span><h2>ChatGPT 기반 AI 연결</h2><p class="ws-muted">ChatGPT 구독과 OpenAI API는 별개야. GitHub Pages에 비밀 API 키를 넣으면 노출되므로, Cloudflare Worker 보안 중계 서버를 사용해.</p>${formField('Cloudflare Worker 주소','wsEndpoint',S.endpoint,'placeholder="https://이름.계정.workers.dev" inputmode="url"')}${formField('WORLDLINE 접근 암호 (API 키 아님)','wsAccess','',`type="password" placeholder="Worker에 저장한 APP_ACCESS_TOKEN" autocomplete="off"`)}<div class="ws-actions">${btn('connect','연결 설정 저장','btn-primary')}${btn('ping','연결 확인')}</div><p class="ws-help">접근 암호는 이 브라우저 탭/세션에만 저장하고, GitHub나 내보내기 파일에 넣지 않아. 실제 OpenAI 키는 Worker Secrets에만 저장해야 해.</p><hr><h3>AI 연결 없이 사용하려면</h3><p>직접 세계관을 입력해 오프라인 선택형 이야기를 만들거나, 분석 요청문을 복사해 ChatGPT에서 분석한 JSON을 가져올 수 있어.</p>${btn('chatprompt','ChatGPT 요청문 복사')}${btn('importjson','ChatGPT 분석 JSON 붙여 넣기')}</section><aside class="ws-card ws-info"><span class="ws-step">IMPORTANT</span><h3>파일과 개인정보</h3><p class="ws-muted">텍본은 업로드 직후 이 기기에서 읽어. AI 분석이나 웹 조사를 실행하면 필요한 텍스트를 서버와 OpenAI API에 전송해. 원본 텍본은 WORLDLINE 서버에 저장하지 않아.</p><hr><h3>AI 연결 비용</h3><p class="ws-muted">API 호출은 별도 과금될 수 있어. 한 번에 처리하지 못하는 긴 문서는 여러 번 나눠 분석하므로 호출 횟수가 늘 수 있어.</p><hr><h3>오류가 날 때</h3><p class="ws-muted">연결이 실패하면 Worker 배포, 두 가지 Secret, ALLOWED_ORIGIN, 입력한 접근 암호를 확인해.</p></aside></div>`}
+function renderSettings(){return `<div class="ws-split"><section class="ws-card"><span class="ws-step">SECURE CONNECTION</span><h2>ChatGPT 기반 AI 연결</h2><p class="ws-muted">ChatGPT 구독과 OpenAI API는 별개야. GitHub Pages에 비밀 API 키를 넣으면 노출되므로, Cloudflare Worker 보안 중계 서버를 사용해.</p>${formField('Cloudflare Worker 주소','wsEndpoint',S.endpoint,'placeholder="https://이름.계정.workers.dev" inputmode="url"')}${formField('WORLDLINE 접근 암호 (API 키 아님)','wsAccess','',`type="password" placeholder="Worker에 저장한 APP_ACCESS_TOKEN" autocomplete="off"`)}<div class="ws-actions">${btn('connect','연결 설정 저장','btn-primary')}${btn('ping','연결 확인')}</div><p class="ws-help">접근 암호는 이 브라우저 탭/세션에만 저장하고, GitHub나 내보내기 파일에 넣지 않아. 실제 OpenAI 키는 Worker Secrets에만 저장해야 해.</p><hr><h3>AI 연결 없이 사용하려면</h3><p>직접 세계관을 입력해 오프라인 선택형 이야기를 만들거나, 분석 요청문을 복사해 ChatGPT에서 분석한 JSON을 가져올 수 있어.</p>${btn('chatprompt','ChatGPT 요청문 복사')}${area('ChatGPT가 만든 JSON 붙여넣기','wsJSONPaste','',6,'여기에 ChatGPT가 반환한 JSON 객체 전체를 붙여 넣기')} ${btn('importjson','붙여넣은 JSON을 세계관으로 가져오기','btn-primary')}</section><aside class="ws-card ws-info"><span class="ws-step">IMPORTANT</span><h3>파일과 개인정보</h3><p class="ws-muted">텍본은 업로드 직후 이 기기에서 읽어. AI 분석이나 웹 조사를 실행하면 필요한 텍스트를 서버와 OpenAI API에 전송해. 원본 텍본은 WORLDLINE 서버에 저장하지 않아.</p><hr><h3>AI 연결 비용</h3><p class="ws-muted">API 호출은 별도 과금될 수 있어. 한 번에 처리하지 못하는 긴 문서는 여러 번 나눠 분석하므로 호출 횟수가 늘 수 있어.</p><hr><h3>오류가 날 때</h3><p class="ws-muted">연결이 실패하면 Worker 배포, 두 가지 Secret, ALLOWED_ORIGIN, 입력한 접근 암호를 확인해.</p></aside></div>`}
 function render(){const tab=S.tab;return `<div class="page ws-page"><div class="ws-hero"><div><span class="eyebrow">WORLDLINE AI STUDIO</span><h1>원하는 세계로 들어가,<br><em>이야기를 다시 써.</em></h1><p>텍본 업로드 · 웹 자료 조사 · 세계관 직접 편집 · 선택형 AI 스토리</p></div><div class="ws-hero-mark">✧</div></div>${renderNavTabs()}<div class="ws-status" id="studioStatus" aria-live="polite">${esc(S.status||'작품 파일을 올리거나 세계관 이름을 입력해 시작해.')}</div>${S.busy?`<div class="ws-progress" role="status">${esc(S.progress||'처리 중…')}</div>`:''}${tab==='build'?renderBuild():tab==='knowledge'?renderKnowledge():tab==='play'?renderPlay():renderSettings()}<footer class="ws-footer">※ 창작용 팬 시뮬레이터야. 검색한 세계관 정보와 AI 생성 내용은 사실과 다를 수 있어.</footer></div>`}
 function setBibleFromInputs(){const b=S.bible;
   for(const [id,k] of [['wsBibleTitle','title'],['wsSummary','summary'],['wsSetting','setting']]){const e=document.getElementById(id);if(e)b[k]=e.value.trim()}
@@ -86,14 +86,14 @@ async function analyze(){captureSetup();if(!S.title.trim())throw Error('분석�
     bible=normalizeBible(r.value,S.title);bible.sources=unique([...(S.bible.sources||[]),...(r.sources||[]),...getNotesLinks().map(url=>({url,title:'사용자 참고 링크'}))].map(x=>JSON.stringify(x))).map(x=>JSON.parse(x)).slice(0,15);
     S.bible=bible;
   }
-  S.activeId='';S.tab='knowledge';S.status=`텍본 ${total}개 구간 분석 완료. 세계관 도감을 검토한 후 저장해 줘.`;
+  if(activeWorld()?.title!==S.title)S.activeId='';S.tab='knowledge';S.status=`텍본 ${total}개 구간 분석 완료. 세계관 도감을 검토한 후 저장해 줘.`;
 }
 async function research(){captureSetup();if(!S.title.trim())throw Error('조사할 작품 이름을 입력해 줘.');if(!hasConfig()){S.tab='settings';show();throw Error('웹 검색에는 AI 서버 연결이 필요해. 현재는 제목과 참고 링크를 직접 입력해 도감을 만들 수 있어.')}
   S.progress='공개된 작품 정보와 출처를 조사하는 중…';show();
   const r=await callAI('research',{title:S.title,media:S.media,notes:S.notes,links:getNotesLinks()});
   S.bible=normalizeBible(r.value,S.title);S.bible.sources=unique([...(r.sources||[]),...getNotesLinks().map(url=>({url,title:'사용자가 지정한 링크 (내용 미검증)'}))].map(x=>JSON.stringify(x))).map(x=>JSON.parse(x)).slice(0,20);
   if(!S.bible.sources.length)S.bible.unknowns.push('검색 출처 URL이 확보되지 않았으므로 인물과 설정 정보를 검증해 줘.');
-  S.activeId='';S.tab='knowledge';S.status='웹 자료 조사 완료. 확인된 링크를 열어 정확도를 검토해 줘.';
+  if(activeWorld()?.title!==S.title)S.activeId='';S.tab='knowledge';S.status='웹 자료 조사 완료. 확인된 링크를 열어 정확도를 검토해 줘.';
 }
 async function readFile(file){if(file.size>8*1024*1024)throw Error(file.name+' 파일은 8MB 이하만 읽을 수 있어.');const lower=file.name.toLowerCase();let content='';
   if(lower.endsWith('.epub')){
@@ -121,9 +121,9 @@ async function readFile(file){if(file.size>8*1024*1024)throw Error(file.name+' �
   }
   return content.replace(/\r\n?/g,'\n').replace(/\n{5,}/g,'\n\n\n').trim();
 }
-async function filesChanged(files){if(!files?.length)return;const selected=[...files].slice(0,8);S.fileInfo='파일 읽는 중…';show();try{
+async function filesChanged(files){if(!files?.length)return;captureSetup();const selected=[...files].slice(0,8);S.fileInfo='파일 읽는 중…';show();try{
   const a=[];for(const f of selected){const text=await readFile(f);if(text)a.push(`\n\n[파일: ${f.name}]\n${text}`)}
-  S.rawText=a.join('\n').trim();S.fileNames=selected.map(f=>f.name);S.preview=S.rawText.slice(0,3500);
+  S.rawText=a.join('\n').trim();if(!S.title.trim())S.title=selected[0].name.replace(/\.(txt|md|markdown|epub|html|htm|json)$/i,'').slice(0,100);S.fileNames=selected.map(f=>f.name);S.preview=S.rawText.slice(0,3500);
   S.fileInfo=`${selected.length}개 파일 · ${S.rawText.length.toLocaleString('ko-KR')}글자 읽음 · ${S.rawText.length>540000?'AI 분석은 앞의 54만 글자까지':'AI 분석 준비 완료'}`;
   S.status='파일 내용을 기기에서 읽었어. AI 분석 버튼을 눌러야 서버에 전송돼.';show();
 }catch(e){errorNotice(e)}}
@@ -159,7 +159,7 @@ function onClick(e,b){const action=b.dataset.studio;if(!action)return false;
   if(action==='connect'){captureSetup();const el=document.getElementById('wsAccess');if(el?.value.trim())accessToken=el.value.trim();if(accessToken)sessionStorage.setItem(ACCESS,accessToken);persistStudio();S.status='연결 설정 저장 완료. 「연결 확인」을 눌러 봐.';show();return true}
   if(action==='ping'){captureSetup();withBusy(async()=>{const url=S.endpoint.trim().replace(/\/$/,'');if(!/^https:\/\//.test(url))throw Error('Worker 주소를 입력해 줘.');const r=await fetch(url+'/health');if(!r.ok)throw Error('서버 상태를 확인할 수 없어.');const data=await r.json();if(!data.configured)throw Error('Worker에서 API 키 또는 접근 암호가 설정되지 않았어.');S.status='Worker 응답 확인 완료. 실제 AI 호출은 분석 시 이루어져.'});return true}
   if(action==='chatprompt'){chatPrompt();return true}
-  if(action==='importjson'){const input=prompt('ChatGPT에서 받은 JSON 전체를 붙여넣어 줘.');if(input){try{parseChatJSON(input)}catch{alert('JSON 형식이 올바르지 않아. 코드블록 대신 JSON 전체를 복사해 줘.')}}return true}
+  if(action==='importjson'){const input=document.getElementById('wsJSONPaste')?.value?.trim()||'';if(!input){alert('위 칸에 ChatGPT가 반환한 JSON을 먼저 붙여 넣어 줘.');return true}try{parseChatJSON(input)}catch{alert('JSON 형식이 올바르지 않아. 코드블록 대신 JSON 전체를 복사해 줘.')}return true}
   if(action==='start'){captureSetup();withBusy(beginRun);return true}
   if(action==='next'){withBusy(generateScene);return true}
   if(action==='choose'){const c=S.run?.current?.choices?.[Number(b.dataset.index)];if(c)withBusy(()=>chooseRun(c.label));return true}
